@@ -30,5 +30,6 @@ npx hardhat test
 
 # To deploy the contract running on the Rinkeby test network
 ```
-npx hardhat run --network localhost scripts/deploy.js
+npx hardhat run --network rinkeby scripts/deploy.js
+npx hardhat run --network rinkeby scripts/upgrade.js
 ```
