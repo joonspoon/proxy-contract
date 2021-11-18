@@ -8,6 +8,10 @@ async function main() {
   await box.store(23);
   const value = await box.retrieve();
   console.log('Box value is', value.toString());
+
+  await box.withdrawFeesCollected();
+  const value = await box.retrieve();
+  console.log('After withdrawal, box value is', value.toString());
 }
 
 async function retrieveAccounts() {
