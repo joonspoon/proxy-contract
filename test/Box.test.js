@@ -11,7 +11,6 @@ describe('Box', function () {
     await this.box.deployed();
   });
 
-  // Test case
   it('retrieve returns a value previously stored', async function () {
     // Store a value
     await this.box.store(42);
@@ -21,4 +20,8 @@ describe('Box', function () {
     expect((await this.box.retrieve()).toString()).to.equal('42');
   });
 
+  it('withdraw function exists after upgrade', async function () {
+    await this.box.withdrawFeesCollected();
+    expect((await this.box.retrieve()).toString()).to.equal('0');
+  });
 });

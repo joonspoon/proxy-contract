@@ -1,4 +1,5 @@
 require('@nomiclabs/hardhat-ethers');
+require('@openzeppelin/hardhat-upgrades');
 
 const { alchemyApiKey, seedPhrase } = require('./secrets.json');
 
