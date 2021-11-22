@@ -1,15 +1,15 @@
 const { ethers, upgrades } = require('hardhat');
-const rinkebyContractAddress = "0x303871bE5640fbDA8DEba71c3B6261011CA1dF61";
-const localContractAddress = "";
-const localOrRinkeby = "Rinkeby";
+const rinkebyContractAddress = "0x4e127a4E9b1Fec0D6c4b27402Fdd3313E4833fFD";
+const localContractAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+const localOrRinkeby = "rinkeby";
 
 async function main () {
-  const BoxV2 = await ethers.getContractFactory('Box');
+  const SwapV2 = await ethers.getContractFactory('Swap');
   console.log('Upgrading contract...');
   if(localOrRinkeby == "local")
-    await upgrades.upgradeProxy(localContractAddress, BoxV2);
+    await upgrades.upgradeProxy(localContractAddress, SwapV2);
   else
-    await upgrades.upgradeProxy(rinkebyContractAddress, BoxV2);
+    await upgrades.upgradeProxy(rinkebyContractAddress, SwapV2);
   console.log('Contract upgraded on ' + localOrRinkeby);
 }
 

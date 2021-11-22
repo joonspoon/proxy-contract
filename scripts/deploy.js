@@ -1,11 +1,11 @@
 const { ethers, upgrades } = require('hardhat');
 
 async function main () {
-  const Box = await ethers.getContractFactory('Box');
-  console.log('Deploying Box...');
-  const box = await upgrades.deployProxy(Box, [42], { initializer: 'store' });
-  await box.deployed();
-  console.log('Box deployed to:', box.address);
+  const contractFactory = await ethers.getContractFactory('Swap');
+  console.log('Deploying Swap...');
+  const contract = await upgrades.deployProxy(contractFactory);
+  await contract.deployed();
+  console.log('Swap contract deployed to:', contract.address);
 }
 
 main()
