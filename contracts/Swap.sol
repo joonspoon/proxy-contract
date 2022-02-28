@@ -14,7 +14,7 @@ contract Swap is OwnableUpgradeable {
   address private constant UNISWAP_V2_ROUTER = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
   address private constant WETH_ADDRESS = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
 
-  function swapFromETH(
+  function swapFromETH (
     address _tokenOut,
     uint _amountOutMin
   ) external payable {
@@ -23,7 +23,7 @@ contract Swap is OwnableUpgradeable {
     swap(WETH_ADDRESS, _tokenOut, msg.value, _amountOutMin);
   }
 
-  function swapFromERC20(
+  function swapFromERC20 (
     address _tokenIn,
     address _tokenOut,
     uint _amountIn,
@@ -34,7 +34,7 @@ contract Swap is OwnableUpgradeable {
     swap(_tokenIn, _tokenOut, _amountIn, _amountOutMin);
   }
 
-  function swap(
+  function swap (
       address _tokenIn,
       address _tokenOut,
       uint _amountIn,
@@ -46,9 +46,17 @@ contract Swap is OwnableUpgradeable {
       uint feePercentage = 1;  /// TODO: reduce the swap fee to .5%
       uint edgeFee = SafeMathUpgradeable.div(SafeMathUpgradeable.mul(_amountIn, feePercentage), 100);
 
-      address[] memory path = new address[](2);
-      path[0] = _tokenIn;
-      path[1] = _tokenOut;
+      address[] memory path;
+      if (_tokenIn == WETH_ADDRESS || _tokenOut == WETH_ADDRESS) {
+        path = new address[](2);
+        path[0] = _tokenIn;
+        path[1] = _tokenOut;
+      } else {
+        path = new address[](3);
+        path[0] = _tokenIn;
+        path[1] = WETH_ADDRESS;
+        path[2] = _tokenOut;
+      }
 
       IUniswapV2Router02(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
         _amountIn - edgeFee,
