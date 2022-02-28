@@ -43,8 +43,8 @@ contract Swap is OwnableUpgradeable {
 
       TransferHelper.safeApprove(_tokenIn, UNISWAP_V2_ROUTER, _amountIn);
 
-      uint feePercentage = 1;  /// TODO: reduce the swap fee to .5%
-      uint edgeFee = SafeMathUpgradeable.div(SafeMathUpgradeable.mul(_amountIn, feePercentage), 100);
+      /// Charge a swap fee of .5%
+      uint edgeFee = SafeMathUpgradeable.div(_amountIn, 200);
 
       address[] memory path;
       if (_tokenIn == WETH_ADDRESS || _tokenOut == WETH_ADDRESS) {
