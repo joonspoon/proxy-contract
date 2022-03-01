@@ -14,25 +14,28 @@ contract Swap is Initializable, OwnableUpgradeable {
 
   address private constant UNISWAP_V2_ROUTER = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
   address private constant WETH_ADDRESS = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
+  address private constant USDT_ADDRESS = 0x3B00Ef435fA4FcFF5C209a37d1f3dcff37c705aD;
+  address private constant USDC_ADDRESS = 0xeb8f08a975Ab53E34D8a0330E0D34de942C95926;
+  address private constant DAI_ADDRESS = 0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8;
+  address private constant WBTC_ADDRESS = 0x577D296678535e4903D59A4C929B718e1D575e0A;
 
   mapping( address => bool) private preferredFeeCurrencies;
 
   function initialize() public initializer {
-     /// Rinkeby
-    address USDT_ADDRESS = 0x3B00Ef435fA4FcFF5C209a37d1f3dcff37c705aD;
+     __Ownable_init_unchained();
+
     preferredFeeCurrencies[USDT_ADDRESS] = true;
-    address USDC_ADDRESS = 0xeb8f08a975Ab53E34D8a0330E0D34de942C95926;
     preferredFeeCurrencies[USDC_ADDRESS] = true;
-    address DAI_ADDRESS = 0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8;
     preferredFeeCurrencies[DAI_ADDRESS] = true;
+    preferredFeeCurrencies[WBTC_ADDRESS] = true;
+    preferredFeeCurrencies[WETH_ADDRESS] = true;
  }
 
   function isPreferred(address _currency) private view returns (bool) {
     return preferredFeeCurrencies[_currency];
   }
 
-  ///TODO: restrict to owner
-  function addPreferredCurrencyForFees(address _currency) public {
+  function addPreferredCurrencyForFees(address _currency) public onlyOwner {
     preferredFeeCurrencies[_currency] = true;
   }
 
@@ -89,29 +92,46 @@ contract Swap is Initializable, OwnableUpgradeable {
           block.timestamp
         );
 
-    } else {  /// fee needs to be charged after swap
+      } else {  /// fee needs to be charged after swap
 
-      uint[] memory amounts = IUniswapV2Router02(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
-        _amountIn,
-        _amountOutMin,
-        path,
-        address(this),
-        block.timestamp
-      );
+        uint[] memory amounts = IUniswapV2Router02(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
+          _amountIn,
+          _amountOutMin,
+          path,
+          address(this),
+          block.timestamp
+        );
 
-      uint amountReturned = amounts[amounts.length - 1];  // if multiple hops were involved, the final amount will be in the last element
-      uint edgeFee = SafeMathUpgradeable.div(amountReturned, 200); /// Charge a swap fee of .5%
+        uint amountReturned = amounts[amounts.length - 1];  // if multiple hops were involved, the final amount will be in the last element
+        uint edgeFee = SafeMathUpgradeable.div(amountReturned, 200); /// Charge a swap fee of .5%
 
-      TransferHelper.safeApprove(_tokenOut,  address(this), amountReturned - edgeFee);
-      TransferHelper.safeTransferFrom(_tokenOut, address(this), msg.sender, amountReturned - edgeFee);
+        TransferHelper.safeApprove(_tokenOut,  address(this), amountReturned - edgeFee);
+        TransferHelper.safeTransferFrom(_tokenOut, address(this), msg.sender, amountReturned - edgeFee);
     }
   }
 
   ///TODO: restrict to owner
-  function withdrawFees(address _token, address _recipient) external {
+  function withdrawExoticFees(address _token, address _recipient) external onlyOwner {
       ERC20Upgradeable tokenRequested = ERC20Upgradeable(_token);
       TransferHelper.safeApprove(_token, address(this), tokenRequested.balanceOf(address(this))); //may be able to remove this or approve all common tokens once in the constructor
       TransferHelper.safeTransferFrom(_token, address(this), _recipient, tokenRequested.balanceOf(address(this)));
     }
+
+  function withdrawFees() external {
+      // AddressUpgradeable.sendValue(payable(owner()), address(this).balance); // in case we have any ETH
+
+      sendTokenBalanceToOwner(WETH_ADDRESS);
+      sendTokenBalanceToOwner(USDT_ADDRESS);
+      sendTokenBalanceToOwner(USDC_ADDRESS);
+      sendTokenBalanceToOwner(WBTC_ADDRESS);
+      sendTokenBalanceToOwner(WBTC_ADDRESS);
+  }
+
+  function sendTokenBalanceToOwner(address tokenToWithdraw) private {
+    ERC20Upgradeable tokenAsContract = ERC20Upgradeable(tokenToWithdraw);
+    if(tokenAsContract.balanceOf(address(this)) < 1000) return;
+    TransferHelper.safeApprove(tokenToWithdraw, address(this), tokenAsContract.balanceOf(address(this)));
+    TransferHelper.safeTransferFrom(tokenToWithdraw, address(this), payable(owner()), tokenAsContract.balanceOf(address(this)));
+  }
 
 }
