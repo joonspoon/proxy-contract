@@ -1,5 +1,5 @@
 const { ethers, upgrades } = require('hardhat');
-const rinkebyContractAddress = "0x84F4d73e9D679fc487cC819f02069096b4aBE210";
+const rinkebyContractAddress = "0xAd14652864994d93FeDb1B7f59337372C453E6BD";
 const localContractAddress = "0x7a689cdF61a0975605C143A7427d4611eAe2479B";
 const localOrRinkeby = "rinkeby";
 
