@@ -8,5 +8,9 @@
     "@openzeppelin/test-helpers": "^0.5.15",
     "ethers": "^5.5.1",
     "hardhat": "^2.6.8"
+  },
+  "dependencies": {
+    "@uniswap/lib": "^4.0.1-alpha",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0"
   }
 }
