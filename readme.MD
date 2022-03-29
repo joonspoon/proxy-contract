@@ -20,7 +20,7 @@ Create a file "secrets.json" in the project root directory containing the wallet
   "alchemyApiKey": "xxxx"
 }
 ```
-# To deploy the contract on the Rinkeby testnet for th first time
+# To deploy the contract on the Rinkeby testnet for the first time
 ```
 npx hardhat run --network rinkeby scripts/deploy.js
 ```
