@@ -20,9 +20,12 @@ Create a file "secrets.json" in the project root directory containing the wallet
   "alchemyApiKey": "xxxx"
 }
 ```
+# To deploy the contract on the Rinkeby testnet for th first time
+```
+npx hardhat run --network rinkeby scripts/deploy.js
+```
 
-
-# To make changes to the existing contract
+# To make changes to the existing contract on Rinkeby
 ```
 npx hardhat run --network rinkeby scripts/upgrade.js
 ```
@@ -50,10 +53,4 @@ npx hardhat run --network localhost ./scripts/index.js
 ## To run the unit tests
 ```
 npx hardhat test
-```
-
-## To deploy the contract running on the Rinkeby test network
-```
-npx hardhat run --network rinkeby scripts/deploy.js
-npx hardhat run --network rinkeby scripts/upgrade.js
 ```
