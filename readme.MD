@@ -1,5 +1,5 @@
 # Pre-requisites
-- Node.js v12+
+- Node.js v12+ (check with: node -v)
 - npm
 - An [Alchemy](https://www.alchemy.com/) key for interacting with the Ethereum blockchain
 - An Ethereum wallet mnemonic (12 words) 
@@ -13,7 +13,7 @@ git clone https://github.com/joonspoon/proxy-contract
 cd proxy-contract
 npm install
 ```
-Create a file "secrets.json" in the project root directory containing the wallet mnemonic and alchemy key:
+Create a file `secrets.json` in the project root directory containing the wallet mnemonic and Alchemy key:
 ```
 {
   "seedPhrase": "xxxxxxx",
@@ -24,8 +24,14 @@ Create a file "secrets.json" in the project root directory containing the wallet
 ```
 npx hardhat run --network rinkeby scripts/deploy.js
 ```
+Take note of the contract address for interacting with the smart contract from now on
+
+Check the contract has been deployed on [Etherscan](https://rinkeby.etherscan.io)
 
 # To make changes to the existing contract on Rinkeby
+Update `scripts/upgrade.js` with the address of your recently deployed contract ☝️
+
+Edit the contract code in `contracts/Swap.sol`
 ```
 npx hardhat run --network rinkeby scripts/upgrade.js
 ```
