@@ -13,7 +13,7 @@ git clone https://github.com/joonspoon/proxy-contract
 cd proxy-contract
 npm install
 ```
-Create a file "secrets.json" in the source directory containing the wallet mnemonic and alchemy key:
+Create a file "secrets.json" in the project root directory containing the wallet mnemonic and alchemy key:
 ```
 {
   "seedPhrase": "xxxxxxx",
