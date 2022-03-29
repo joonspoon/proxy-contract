@@ -1,11 +1,12 @@
 # Pre-requisites
 - Node.js v12+
+- npm
 ```
 git clone https://github.com/joonspoon/proxy-contract
 cd proxy-contract
 npm install
-// Create secrets.json containing "seedPhrase" and "alchemyApiKey".
 ```
+// Create secrets.json containing "seedPhrase" and "alchemyApiKey".
 
 # To make changes to the existing contract
 ```
