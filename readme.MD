@@ -2,7 +2,7 @@
 - Node.js v12+ (check with: node -v)
 - npm
 - An [Alchemy](https://www.alchemy.com/) key for interacting with the Ethereum blockchain
-- An Ethereum wallet mnemonic (12 words) 
+- An Ethereum wallet private key, which will be the only wallet able to withdraw fees from the contract
 - The wallet address (starting with 0x)
 - To deploy the contract on **Mainnet** - 0.1 ETH in that wallet needed for gas
 - To deploy the contract on the **Rinkeby testnet** - test ETH from the [Chainlink faucet](https://faucets.chain.link/rinkeby)
@@ -13,10 +13,10 @@ git clone https://github.com/joonspoon/proxy-contract
 cd proxy-contract
 npm install
 ```
-Create a file `secrets.json` in the project root directory containing the wallet mnemonic and Alchemy key:
+Create a file `secrets.json` in the project root directory containing the wallet private key and Alchemy key:
 ```
 {
-  "seedPhrase": "xxxxxxx",
+  "privateKey": "xxxxxxx",
   "alchemyApiKey": "xxxx"
 }
 ```
