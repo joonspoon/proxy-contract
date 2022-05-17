@@ -12,6 +12,9 @@ import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 
 contract Swap is Initializable, OwnableUpgradeable {
 
+  event Amount(string description, uint amount);
+  event Address(string description, address addy);
+
   address private constant UNISWAP_V2_ROUTER = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
   address private constant WETH_ADDRESS = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
   address private constant USDT_ADDRESS = 0x3B00Ef435fA4FcFF5C209a37d1f3dcff37c705aD;
@@ -44,9 +47,27 @@ contract Swap is Initializable, OwnableUpgradeable {
     uint _amountOutMin
   ) external payable {
 
-    AddressUpgradeable.sendValue(payable(WETH_ADDRESS), msg.value);
-    swap(WETH_ADDRESS, _tokenOut, msg.value, _amountOutMin);
+    AddressUpgradeable.sendValue(payable(WETH_ADDRESS), msg.value); //wrap ETH to WETH (comes back automatically)
+    uint amountToReturn = swap(WETH_ADDRESS, _tokenOut, msg.value, _amountOutMin);
+    backToWallet(_tokenOut, amountToReturn);
   }
+
+  function swapToETH (
+      address _tokenIn,
+      uint _amountIn,
+      uint _amountOutMin
+    ) external {
+
+      /* transfer ERC-20 token to contract */
+      TransferHelper.safeTransferFrom(_tokenIn, msg.sender, address(this), _amountIn);
+      /* swap ERC-20 token for WETH */
+      uint wethReceived = swap(_tokenIn, WETH_ADDRESS, _amountIn, _amountOutMin);
+        emit Amount("wethReceived", wethReceived);
+      /* unwrap WETH received from swap */
+     //AddressUpgradeable.sendValue(payable(WETH_ADDRESS), wethReceived);
+      /* forward ETH to wallet */
+    //  AddressUpgradeable.sendValue(payable(msg.sender), wethReceived);
+    }
 
   function swapFromERC20 (
     address _tokenIn,
@@ -56,7 +77,13 @@ contract Swap is Initializable, OwnableUpgradeable {
   ) external {
 
     TransferHelper.safeTransferFrom(_tokenIn, msg.sender, address(this), _amountIn);
-    swap(_tokenIn, _tokenOut, _amountIn, _amountOutMin);
+    uint amountReceived = swap(_tokenIn, _tokenOut, _amountIn, _amountOutMin);
+    backToWallet(_tokenOut, amountReceived);
+  }
+
+  function backToWallet (address _tokenOut, uint _amount) private {
+    TransferHelper.safeApprove(_tokenOut,  address(this), _amount);
+    TransferHelper.safeTransferFrom(_tokenOut, address(this), msg.sender, _amount);
   }
 
   function swap (
@@ -64,7 +91,7 @@ contract Swap is Initializable, OwnableUpgradeable {
       address _tokenOut,
       uint _amountIn,
       uint _amountOutMin
-    ) private {
+    ) private returns (uint amountOfTokenOut) {
 
       TransferHelper.safeApprove(_tokenIn, UNISWAP_V2_ROUTER, _amountIn);
 
@@ -80,34 +107,30 @@ contract Swap is Initializable, OwnableUpgradeable {
         path[2] = _tokenOut;
       }
 
+      bool feeHasBeenSubtracted = false;
       /// if the input token is already in one our preferred currencies, subtract the fee right away
       if (isPreferred(_tokenIn)) {
-        uint edgeFee = SafeMathUpgradeable.div(_amountIn, 200); /// Charge a swap fee of .5%
+        uint edgeFee = SafeMathUpgradeable.div(_amountIn, 200); /// Charge a swap fee of .5% up front
+        _amountIn = _amountIn - edgeFee;
+        feeHasBeenSubtracted = true;
+      }
 
-        IUniswapV2Router02(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
-          _amountIn - edgeFee,
-          _amountOutMin,
-          path,
-          msg.sender,
-          block.timestamp
-        );
+      uint[] memory amounts = IUniswapV2Router02(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
+        _amountIn,
+        _amountOutMin,
+        path,
+        address(this),
+        block.timestamp
+      );
 
-      } else {  /// fee needs to be charged after swap
+      uint amountToReturn = amounts[amounts.length - 1];  // if multiple hops were involved, the final amount will be in the last element
 
-        uint[] memory amounts = IUniswapV2Router02(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
-          _amountIn,
-          _amountOutMin,
-          path,
-          address(this),
-          block.timestamp
-        );
+      if (!feeHasBeenSubtracted) {
+        uint edgeFee = SafeMathUpgradeable.div(amountToReturn, 200); /// Charge a swap fee of .5%
+        amountToReturn = amountToReturn - edgeFee;
+      }
 
-        uint amountReturned = amounts[amounts.length - 1];  // if multiple hops were involved, the final amount will be in the last element
-        uint edgeFee = SafeMathUpgradeable.div(amountReturned, 200); /// Charge a swap fee of .5%
-
-        TransferHelper.safeApprove(_tokenOut,  address(this), amountReturned - edgeFee);
-        TransferHelper.safeTransferFrom(_tokenOut, address(this), msg.sender, amountReturned - edgeFee);
-    }
+      return amountToReturn;
   }
 
   function withdrawExoticFees(address _token, address _recipient) external onlyOwner {
