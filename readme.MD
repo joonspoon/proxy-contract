@@ -1,13 +1,37 @@
 # Pre-requisites
-- Node.js v12+
+- Node.js v12+ (check with: node -v)
+- npm
+- An [Alchemy](https://www.alchemy.com/) key for interacting with the Ethereum blockchain
+- An Ethereum wallet private key, which will be the only wallet able to withdraw fees from the contract
+- The wallet address (starting with 0x)
+- To deploy the contract on **Mainnet** - 0.1 ETH in that wallet needed for gas
+- To deploy the contract on the **Rinkeby testnet** - test ETH from the [Chainlink faucet](https://faucets.chain.link/rinkeby)
+
+# To use this code
 ```
 git clone https://github.com/joonspoon/proxy-contract
 cd proxy-contract
 npm install
-// Create secrets.json containing "seedPhrase" and "alchemyApiKey".
 ```
+Create a file `secrets.json` in the project root directory containing the wallet private key and Alchemy key:
+```
+{
+  "privateKey": "xxxxxxx",
+  "alchemyApiKey": "xxxx"
+}
+```
+# To deploy the contract on the Rinkeby testnet for the first time
+```
+npx hardhat run --network rinkeby scripts/deploy.js
+```
+Take note of the contract address for interacting with the smart contract from now on
 
-# To make changes to the existing contract
+Check the contract has been deployed on [Etherscan](https://rinkeby.etherscan.io)
+
+# To make changes to the existing contract on Rinkeby
+Update `scripts/upgrade.js` with the address of your recently deployed contract ☝️
+
+Edit the contract code in `contracts/Swap.sol`
 ```
 npx hardhat run --network rinkeby scripts/upgrade.js
 ```
@@ -35,10 +59,4 @@ npx hardhat run --network localhost ./scripts/index.js
 ## To run the unit tests
 ```
 npx hardhat test
-```
-
-## To deploy the contract running on the Rinkeby test network
-```
-npx hardhat run --network rinkeby scripts/deploy.js
-npx hardhat run --network rinkeby scripts/upgrade.js
 ```
