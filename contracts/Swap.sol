@@ -110,7 +110,6 @@ contract Swap is Initializable, OwnableUpgradeable {
     }
   }
 
-  ///TODO: restrict to owner
   function withdrawExoticFees(address _token, address _recipient) external onlyOwner {
       ERC20Upgradeable tokenRequested = ERC20Upgradeable(_token);
       TransferHelper.safeApprove(_token, address(this), tokenRequested.balanceOf(address(this))); //may be able to remove this or approve all common tokens once in the constructor
@@ -123,7 +122,7 @@ contract Swap is Initializable, OwnableUpgradeable {
       sendTokenBalanceToOwner(WETH_ADDRESS);
       sendTokenBalanceToOwner(USDT_ADDRESS);
       sendTokenBalanceToOwner(USDC_ADDRESS);
-      sendTokenBalanceToOwner(WBTC_ADDRESS);
+      sendTokenBalanceToOwner(DAI_ADDRESS);
       sendTokenBalanceToOwner(WBTC_ADDRESS);
   }
 
