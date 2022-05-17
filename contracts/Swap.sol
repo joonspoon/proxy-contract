@@ -13,7 +13,7 @@ import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 contract Swap is Initializable, OwnableUpgradeable {
 
   address private constant UNISWAP_V2_ROUTER = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-  address private constant WETH_ADDRESS = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
+  address private constant WETH_ADDRESS = 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
   address private constant USDT_ADDRESS = 0x3B00Ef435fA4FcFF5C209a37d1f3dcff37c705aD;
   address private constant USDC_ADDRESS = 0xeb8f08a975Ab53E34D8a0330E0D34de942C95926;
   address private constant DAI_ADDRESS = 0xc3dbf84Abb494ce5199D5d4D815b10EC29529ff8;
