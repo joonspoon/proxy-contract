@@ -4,11 +4,11 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20WrapperUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
+// import '@uniswap/v2-periphery/contracts/interfaces/IWETH.sol';
 
 contract Swap is Initializable, OwnableUpgradeable {
 
@@ -47,7 +47,7 @@ contract Swap is Initializable, OwnableUpgradeable {
     uint _amountOutMin
   ) external payable {
 
-    AddressUpgradeable.sendValue(payable(WETH_ADDRESS), msg.value); //wrap ETH to WETH (comes back automatically)
+    AddressUpgradeable.sendValue(payable(WETH_ADDRESS), msg.value); //wrap ETH as WETH (comes back automatically)
     uint amountToReturn = swap(WETH_ADDRESS, _tokenOut, msg.value, _amountOutMin);
     backToWallet(_tokenOut, amountToReturn);
   }
@@ -56,18 +56,30 @@ contract Swap is Initializable, OwnableUpgradeable {
       address _tokenIn,
       uint _amountIn,
       uint _amountOutMin
-    ) external {
+    ) external payable {
 
-      /* transfer ERC-20 token to contract */
       TransferHelper.safeTransferFrom(_tokenIn, msg.sender, address(this), _amountIn);
-      /* swap ERC-20 token for WETH */
-      uint wethReceived = swap(_tokenIn, WETH_ADDRESS, _amountIn, _amountOutMin);
-        emit Amount("wethReceived", wethReceived);
-      /* unwrap WETH received from swap */
-     //AddressUpgradeable.sendValue(payable(WETH_ADDRESS), wethReceived);
-      /* forward ETH to wallet */
-    //  AddressUpgradeable.sendValue(payable(msg.sender), wethReceived);
-    }
+      TransferHelper.safeApprove(_tokenIn, UNISWAP_V2_ROUTER, _amountIn);
+
+      uint edgeFee = SafeMathUpgradeable.div(_amountIn, 200); // Charge a swap fee of .5%
+      _amountIn = _amountIn - edgeFee;
+
+      address[] memory path = new address[](2);
+      path[0] = _tokenIn;
+      path[1] = WETH_ADDRESS;
+
+      uint[] memory amounts = IUniswapV2Router02(UNISWAP_V2_ROUTER).swapExactTokensForETH(
+        _amountIn,
+        _amountOutMin,
+        path,
+        msg.sender,
+        block.timestamp
+      );
+
+    /* preferred method that doesn't work for upgradeable proxy contracts :( */
+    //  IWETH(WETH).withdraw(amounts[amounts.length - 1]);
+    //  TransferHelper.safeTransferETH(msg.sender, amounts[amounts.length - 1]);
+  }
 
   function swapFromERC20 (
     address _tokenIn,
@@ -108,9 +120,9 @@ contract Swap is Initializable, OwnableUpgradeable {
       }
 
       bool feeHasBeenSubtracted = false;
-      /// if the input token is already in one our preferred currencies, subtract the fee right away
+      // if the input token is already in one our preferred currencies, subtract the fee right away
       if (isPreferred(_tokenIn)) {
-        uint edgeFee = SafeMathUpgradeable.div(_amountIn, 200); /// Charge a swap fee of .5% up front
+        uint edgeFee = SafeMathUpgradeable.div(_amountIn, 200); // Charge a swap fee of .5% up front
         _amountIn = _amountIn - edgeFee;
         feeHasBeenSubtracted = true;
       }
@@ -126,7 +138,7 @@ contract Swap is Initializable, OwnableUpgradeable {
       uint amountToReturn = amounts[amounts.length - 1];  // if multiple hops were involved, the final amount will be in the last element
 
       if (!feeHasBeenSubtracted) {
-        uint edgeFee = SafeMathUpgradeable.div(amountToReturn, 200); /// Charge a swap fee of .5%
+        uint edgeFee = SafeMathUpgradeable.div(amountToReturn, 200); // Charge a swap fee of .5%
         amountToReturn = amountToReturn - edgeFee;
       }
 
